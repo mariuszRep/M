@@ -1,0 +1,11 @@
+let
+    Source = TMSCHEMA_TABLES,
+    combinedColumnsAndMeasures = Table.Combine({TMSCHEMA_COLUMNS, TMSCHEMA_MEASURES}),
+    #"Merged Queries" = Table.NestedJoin(Source, {"Table.ID"}, combinedColumnsAndMeasures, {"TableID"}, "Field", JoinKind.LeftOuter),
+    #"Expanded Field" = Table.ExpandTableColumn(#"Merged Queries", "Field", {"Name", "IsHidden", "Type", "Expression", "FormatString"}, {"Field.Name", "Field.IsHidden", "Field.Type", "Field.Expression", "Field.FormatString"}),
+    #"Replaced Value" = Table.ReplaceValue(#"Expanded Field",null,"Measure",Replacer.ReplaceValue,{"Field.Type"}),
+    #"Replaced Value1" = Table.ReplaceValue(#"Replaced Value","2","Calculated Column",Replacer.ReplaceText,{"Field.Type"}),
+    #"Replaced Value2" = Table.ReplaceValue(#"Replaced Value1","1","Power Query",Replacer.ReplaceText,{"Field.Type"}),
+    #"Filtered Rows" = Table.SelectRows(#"Replaced Value2", each true)
+in
+    #"Filtered Rows"
