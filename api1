@@ -1,0 +1,22 @@
+( api_url as text, client_id as text, access_token as text, optional optional_api_parameters as text ) => 
+let 
+    api_parameters = if optional_api_parameters = null then "" else optional_api_parameters,
+    initialOfsset = 0,
+    initialTriger = true,
+    loop = ( triger as logical, offset as number, data as list ) =>
+        if triger then 
+            let 
+                api_url_offset = api_url & "?offset=" & Text.From( offset ) & api_parameters,
+                
+                result = getData( api_url_offset, client_id, access_token ),
+                resultData = result[data],
+                resultLimit = result[paging][limit],
+                
+                newData = data & result[data],
+                newOffset = offset + resultLimit,
+                newTriger = not( List.Count( data ) = List.Count( newData ) )
+            in 
+                @loop( newTriger, newOffset,  newData )
+        else data
+in 
+    loop( initialTriger, initialOfsset, {} )
